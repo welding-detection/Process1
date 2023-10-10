@@ -267,21 +267,23 @@ class WorkspaceFinder:
         self.size_x = size_x
         self.size_y = size_y
 
-        workspace, err = self.tryFindWorkspace()
+        workspace, err, err_pt = self.tryFindWorkspace()
         weldingline_mask = None
         if err == 200:
-            weldingline_mask, err = self.requestMask(workspace.copy())
+            weldingline_mask, err, err_pt = self.requestMask(workspace.copy())
 
         self.send_data = {
             'img_workspace': workspace,
             'weldingline_mask': weldingline_mask,
-            'error_messege': err
+            'error_messege': err,
+            'error_point': err_pt
         }
 
     # tryFindWorkspace
     def tryFindWorkspace(self):
         # first: 시편 영역 검출
         err = 200
+        err_pt = ""
         try:
             dst1 = find_Workspace(self.img, self.size_x, self.size_y)
 
@@ -289,18 +291,21 @@ class WorkspaceFinder:
             print('에러가 발생 했습니다', ex)  # ex는 발생한 에러의 이름을 받아오는 변수
             dst1 = np.zeros((self.size_y, self.size_x))
             err = 404
-        return dst1, err
+            err_pt = "tryFindWorkspace(self)"
+        return dst1, err, err_pt
 
     # requestMask
     def requestMask(self, img_workspace):
         err = 200
+        err_pt = ""
         try:
             weldingline_mask = find_WeldingLine(img_workspace)
         except Exception as ex:  # 에러 종류
             print('에러가 발생 했습니다', ex)  # ex는 발생한 에러의 이름을 받아오는 변수
             weldingline_mask = np.zeros((self.size_y, self.size_x))
             err = 404
-        return weldingline_mask, err
+            err_pt = "requestMask(self, img_workspace)"
+        return weldingline_mask, err, err_pt
 
     # applyMask
     def thirdJob(self):
@@ -308,3 +313,4 @@ class WorkspaceFinder:
 
     def getData(self):
         return self.send_data
+
