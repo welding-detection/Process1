@@ -261,6 +261,25 @@ def find_WeldingLine(img_workspace):
 
     return mask.copy()
 
+def check_welding(mask, line_diff = 10, dist_diff = 64):
+    # TODO: 조동휘 JOB
+
+    find = mask.copy()
+
+    right_pos = find.argmax(axis=1) # Right Postion Array
+    distance = find.sum(axis=1) / 255 # distance Array
+    left_pos = find.argmax(axis=1) - (find.sum(axis=1) / 255) # Left Array
+
+    right_check = np.std(right_pos[right_pos.nonzero()]) # pos right standard deviation
+    distance_check = np.where(distance>dist_diff, distance, 0) # over distance array #
+    left_check = np.std(left_pos[left_pos.nonzero()])# pos left standard deviation
+
+    return {
+        "left" : "왼쪽라인은 일정합니다." if left_check < line_diff else "왼쪽라인은 일정하지 않습니다.",
+        "right" : "오른쪽라인은 일정합니다." if right_check < line_diff else "오른쪽라인은 일정하지 않습니다.",
+        "distance" : "비드의 거리가 10mm 이하입니다." if distance_check.sum == 0 else "비드의 거리가 10mm 이상인 부분이 있습니다."
+    }
+
 class WorkspaceFinder:
     def __init__(self, img, size_x=1280, size_y=720):
         self.img = img
